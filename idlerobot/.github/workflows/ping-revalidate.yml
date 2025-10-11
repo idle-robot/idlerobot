@@ -1,0 +1,19 @@
+name: Ping Revalidate (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Project slug to revalidate'
+        required: true
+
+jobs:
+  call:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curl revalidate
+        run: |
+          curl -X POST "$PROD_URL/api/revalidate" \            -H "x-webhook-secret: $REVALIDATE_SECRET" \            -H "Content-Type: application/json" \            --data "{"type":"project","slug":"${{ github.event.inputs.slug }}"}"
+        env:
+          PROD_URL: ${{ secrets.PROD_URL }}
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
