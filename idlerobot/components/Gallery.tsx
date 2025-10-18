@@ -3,7 +3,13 @@ import { cloudinaryTagged } from '@/lib/cloudinary';
 
 export default async function Gallery({ tags }: { tags: string[] }) {
   const lists = await Promise.all(tags.map(t => cloudinaryTagged(t)));
-  const items = lists.flat();
+  const deduped = new Map<string, Awaited<ReturnType<typeof cloudinaryTagged>>[number]>();
+  for (const list of lists) {
+    for (const asset of list) {
+      if (!deduped.has(asset.public_id)) deduped.set(asset.public_id, asset);
+    }
+  }
+  const items = Array.from(deduped.values());
   if (!items.length) return null;
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">

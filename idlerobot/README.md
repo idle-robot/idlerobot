@@ -19,13 +19,15 @@ Create `.env.local`:
 ```
 REVALIDATE_SECRET=supersecret
 CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 Optionally set `YOUTUBE_PLAYLIST_ID` if you add YouTube automation.
 
 ## Automatic updates
 
-1. **Screenshots**: upload to Cloudinary with a tag like `project:<slug>` (e.g., `project:sample-agent`).
+1. **Screenshots**: upload to Cloudinary with a tag like `project:<slug>` (e.g., `project:sample-agent`). Public access mode is required.
 2. Have Cloudinary Webhook call:
    - `POST https://<your-domain>/api/revalidate`
    - Header: `x-webhook-secret: <REVALIDATE_SECRET>`
@@ -64,5 +66,5 @@ Keep `REVALIDATE_SECRET` private. Only share it with trusted webhooks (Cloudinar
 
 ## Notes
 
-- Cloudinary tag JSON requires enabling **image list by tag** or using the Search API server-side.
+- The gallery fetch uses Cloudinary's Search API; keep API credentials server-side only (Vercel env vars) and rotate if exposed.
 - If you prefer a headless CMS (Sanity/Contentful), point `getAllProjects()` to the CMS and trigger `/api/revalidate` via their webhooks.
