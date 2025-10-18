@@ -20,7 +20,14 @@ export async function cloudinaryTagged(tag: string): Promise<CloudinaryImage[]> 
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
-  if (!cloudName || !apiKey || !apiSecret) return [];
+  if (!cloudName || !apiKey || !apiSecret) {
+    console.error('cloudinaryTagged: missing env', {
+      hasCloudName: Boolean(cloudName),
+      hasApiKey: Boolean(apiKey),
+      hasApiSecret: Boolean(apiSecret),
+    });
+    return [];
+  }
 
   const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
   const body = JSON.stringify({
@@ -40,14 +47,26 @@ export async function cloudinaryTagged(tag: string): Promise<CloudinaryImage[]> 
       // Do not cache Search API responses; content updates should surface immediately post-revalidation.
       cache: 'no-store',
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      let bodySnippet = '';
+      try { bodySnippet = (await res.text()).slice(0, 300); } catch {}
+      console.error('cloudinaryTagged: search failed', {
+        status: res.status,
+        statusText: res.statusText,
+        body: bodySnippet,
+      });
+      return [];
+    }
     const data = (await res.json()) as CloudinarySearchResponse;
     return (data.resources ?? []).map(asset => ({
       public_id: asset.public_id,
       format: asset.format,
       secure_url: asset.secure_url,
     }));
-  } catch {
+  } catch (error) {
+    console.error('cloudinaryTagged: unexpected error', {
+      message: error instanceof Error ? error.message : String(error),
+    });
     return [];
   }
 }
